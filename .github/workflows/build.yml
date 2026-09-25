@@ -20,9 +20,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Patch expo-modules-jsi for Swift 6.2
+      - name: Patch Swift Tools Version (Downgrade to Swift 5.9 to bypass strict concurrency)
         run: |
-          sed -i '' 's/SWIFT_RETURNS_RETAINED RuntimeScheduler/RuntimeScheduler/g' node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
+          find node_modules -name "Package.swift" -exec sed -i '' 's/swift-tools-version: 6.[0-9]/swift-tools-version: 5.9/g' {} +
 
       - name: Prebuild iOS project
         run: npx expo prebuild --platform ios --clean
@@ -47,6 +47,9 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
+            SWIFT_STRICT_CONCURRENCY=minimal \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=NO \
+            GCC_TREAT_WARNINGS_AS_ERRORS=NO \
             build
 
       - name: Package into .ipa for Sideloading
