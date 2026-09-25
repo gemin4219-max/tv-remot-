@@ -20,6 +20,10 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Patch expo-modules-jsi for Swift 6.2
+        run: |
+          sed -i '' 's/SWIFT_RETURNS_RETAINED RuntimeScheduler/RuntimeScheduler/g' node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI-Cxx/include/RuntimeScheduler.h
+
       - name: Prebuild iOS project
         run: npx expo prebuild --platform ios --clean
 
