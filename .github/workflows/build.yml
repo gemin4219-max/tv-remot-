@@ -6,7 +6,7 @@ on:
 jobs:
   build-ios:
     name: Build iOS IPA
-    runs-on: macos-14 # Ensure we get a modern Mac runner with Xcode 15+
+    runs-on: macos-15 # Use macOS 15 which includes Xcode 16+
     
     steps:
       - name: Checkout repository
@@ -15,13 +15,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: Install Dependencies
         run: npm install
 
       - name: Prebuild iOS project
         run: npx expo prebuild --platform ios --clean
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.app || sudo xcode-select -s /Applications/Xcode_16.1.app || sudo xcode-select -s /Applications/Xcode_16.2.app || echo "Xcode selection failed, using default"
 
       - name: Install CocoaPods
         run: cd ios && pod install
