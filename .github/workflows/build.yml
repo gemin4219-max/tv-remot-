@@ -1,0 +1,53 @@
+name: Build Unsigned IPA for Sideloading
+
+on:
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+
+jobs:
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-14 # Ensure we get a modern Mac runner with Xcode 15+
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Prebuild iOS project
+        run: npx expo prebuild --platform ios --clean
+
+      - name: Install CocoaPods
+        run: cd ios && pod install
+
+      - name: Build Unsigned iOS App
+        run: |
+          cd ios
+          xcodebuild \
+            -workspace universalremote.xcworkspace \
+            -scheme universalremote \
+            -configuration Release \
+            -sdk iphoneos \
+            CONFIGURATION_BUILD_DIR=$PWD/build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package into .ipa for Sideloading
+        run: |
+          mkdir -p Payload
+          mv ios/build/universalremote.app Payload/
+          zip -r universal-remote.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Universal-Remote-IPA
+          path: universal-remote.ipa
